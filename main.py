@@ -183,6 +183,8 @@ def main():
     # Просматриваем список утерянных или испорченных книг
     library_system.view_lost_or_damaged_books()
 
+    library_system.list_fines(1)
+    
     
 
 if __name__ == "__main__":
