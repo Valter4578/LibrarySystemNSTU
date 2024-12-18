@@ -184,7 +184,12 @@ def main():
     library_system.view_lost_or_damaged_books()
 
     library_system.list_fines(1)
-    
+
+    library_system.return_book(1, "L001")
+    library_system.return_book(1, "L001")
+    library_system.pay_fine(1, 101)
+
+    library_system.remove_reader(1)
     
 
 if __name__ == "__main__":

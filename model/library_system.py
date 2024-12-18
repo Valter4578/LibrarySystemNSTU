@@ -165,25 +165,39 @@ class LibrarySystem:
             else:
                 print(f"Поле '{key}' отсутствует у читателя.")
 
-    def delete_reader(self, ticket_number):
+    def remove_reader(self, ticket_number):
         """
-        Удаление читателя из системы, если он вернул все книги.
+        Удаление читателя из системы.
         :param ticket_number: Номер читательского билета.
         """
         if ticket_number not in self.readers:
-            print(f"Читатель с номером билета {ticket_number} не найден.")
+            print(f"Читатель с номером билета {ticket_number} не найден в системе.")
             return
 
-        # Проверяем, есть ли у читателя выданные книги
-        for record in self.issued_books:
-            if record["reader"].ticket_number == ticket_number and not record["returned"]:
-                print(f"Невозможно удалить читателя с номером билета {ticket_number}: "
-                      f"у него есть невозвращенные книги.")
-                return
+        reader = self.readers[ticket_number]
 
-        # Удаляем читателя
+        # Проверяем наличие невозвращённых книг
+        borrowed_books = [
+            record for record in self.issued_books
+            if record["reader"].ticket_number == ticket_number and not record["returned"]
+        ]
+
+        if borrowed_books:
+            print(f"Читатель {reader.first_name} {reader.last_name} не может быть удалён, "
+                  f"так как за ним числятся невозвращённые книги:")
+            for record in borrowed_books:
+                print(f"  - {record['book'].title}, дата возврата: {record['due_date'].strftime('%Y-%m-%d')}")
+            return
+
+        # Проверяем наличие неоплаченных штрафов
+        if reader.penalties > 0:
+            print(f"Читатель {reader.first_name} {reader.last_name} не может быть удалён, "
+                  f"так как у него есть неоплаченные штрафы на сумму {reader.penalties} рублей.")
+            return
+
+        # Удаляем читателя из системы
         del self.readers[ticket_number]
-        print(f"Читатель с номером билета {ticket_number} успешно удалён.")
+        print(f"Читатель {reader.first_name} {reader.last_name} успешно удалён из системы.")
 
     def list_readers(self):
         """
@@ -232,38 +246,69 @@ class LibrarySystem:
             print(f"Книга: {fine['book'].title}, Причина: {fine['reason']}, "
                   f"Сумма: {fine['amount']} руб., Дата: {fine['date'].strftime('%Y-%m-%d')}")
 
+    # def pay_fine(self, ticket_number, amount):
+    #     """
+    #     Оплата штрафов.
+    #     :param ticket_number: Номер читательского билета.
+    #     :param amount: Сумма оплаты.
+    #     """
+    #     if ticket_number not in self.readers:
+    #         print(f"Читатель с номером билета {ticket_number} не зарегистрирован.")
+    #         return
+
+    #     unpaid_fines = [fine бfor fine in self.fines[icket_number] if not fine["paid"]]
+    #     if not unpaid_fines:
+    #         print(f"Читатель {self.readers[ticket_number].first_name} {self.readers[ticket_number].last_name} "
+    #               f"не имеет неоплаченных штрафов.")
+    #         return
+
+    #     remaining_amount = amount
+    #     for fine in unpaid_fines:
+    #         if remaining_amount <= 0:
+    #             break
+    #         if not fine["paid"]:
+    #             if remaining_amount >= fine["fine"]:
+    #                 remaining_amount -= fine["fine"]
+    #                 fine["paid"] = True
+    #             else:
+    #                 fine["fine"] -= remaining_amount
+    #                 remaining_amount = 0
+
+    #     if remaining_amount > 0:
+    #         print(f"Оплата превышает сумму штрафов. Остаток {remaining_amount} условных единиц возвращён читателю.")
+    #     else:
+    #         print(f"Все доступные штрафы оплачены.")
+
     def pay_fine(self, ticket_number, amount):
         """
-        Оплата штрафов.
+        Оплата штрафа читателем.
         :param ticket_number: Номер читательского билета.
         :param amount: Сумма оплаты.
         """
         if ticket_number not in self.readers:
-            print(f"Читатель с номером билета {ticket_number} не зарегистрирован.")
+            print(f"Читатель с номером билета {ticket_number} не найден в системе.")
             return
 
-        unpaid_fines = [fine for fine in self.fines[ticket_number] if not fine["paid"]]
-        if not unpaid_fines:
-            print(f"Читатель {self.readers[ticket_number].first_name} {self.readers[ticket_number].last_name} "
-                  f"не имеет неоплаченных штрафов.")
+        reader = self.readers[ticket_number]
+
+        if reader.penalties <= 0:
+            print(f"У читателя {reader.first_name} {reader.last_name} нет штрафов для оплаты.")
             return
 
-        remaining_amount = amount
-        for fine in unpaid_fines:
-            if remaining_amount <= 0:
-                break
-            if not fine["paid"]:
-                if remaining_amount >= fine["fine"]:
-                    remaining_amount -= fine["fine"]
-                    fine["paid"] = True
-                else:
-                    fine["fine"] -= remaining_amount
-                    remaining_amount = 0
-
-        if remaining_amount > 0:
-            print(f"Оплата превышает сумму штрафов. Остаток {remaining_amount} условных единиц возвращён читателю.")
+        # Если сумма оплаты больше, чем задолженность
+        if amount > reader.penalties:
+            change = amount - reader.penalties
+            print(f"Штраф для читателя {reader.first_name} {reader.last_name} погашен полностью.")
+            print(f"Сдача: {change} рублей. Вы можете вернуть эту сумму читателю.")
+            reader.penalties = 0
+        elif amount == reader.penalties:
+            # Если сумма оплаты равна задолженности, штраф погашается полностью
+            print(f"Штраф для читателя {reader.first_name} {reader.last_name} погашен полностью.")
+            reader.penalties = 0
         else:
-            print(f"Все доступные штрафы оплачены.")
+            # Уменьшаем сумму штрафа, если оплаты недостаточно
+            reader.penalties -= amount
+            print(f"Оплачено {amount} рублей. Остаток штрафа для читателя {reader.first_name} {reader.last_name}: {reader.penalties} рублей.")
 
     def apply_penalty(self, ticket_number, amount, book, reason="Просрочка книги"):
         """
@@ -457,3 +502,4 @@ class LibrarySystem:
             print(f"Читатель: {reader.first_name} {reader.last_name}, "
                   f"Книга: {book.title}, Статус: {record['status']}, "
                   f"Штраф: {record['penalty']} руб., Дата: {record['date'].strftime('%Y-%m-%d')}")
+            
