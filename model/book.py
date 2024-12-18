@@ -17,15 +17,15 @@ class Book:
         self.place = place
         self.publisher = publisher
         self.total_copies = total_copies
-        self.available_copies = total_copies  # Изначально доступные экземпляры равны общему количеству.
+        self.copies_available = total_copies  # Изначально доступные экземпляры равны общему количеству.
 
     def borrow_book(self):
         """
         Уменьшить количество доступных экземпляров при выдаче книги.
         :return: True, если книга успешно выдана, иначе False (если экземпляров нет).
         """
-        if self.available_copies > 0:
-            self.available_copies -= 1
+        if self.copies_available > 0:
+            self.copies_available -= 1
             return True
         return False
 
@@ -33,8 +33,8 @@ class Book:
         """
         Увеличить количество доступных экземпляров при возврате книги.
         """
-        if self.available_copies < self.total_copies:
-            self.available_copies += 1
+        if self.copies_available < self.total_copies:
+            self.copies_available += 1
 
     def edit_book(self, title=None, authors=None, year=None, place=None, publisher=None, total_copies=None):
         """
@@ -53,7 +53,7 @@ class Book:
             self.publisher = publisher
         if total_copies:
             # Если общее количество экземпляров изменяется, нужно пересчитать доступные экземпляры
-            self.available_copies += total_copies - self.total_copies
+            self.copies_available += total_copies - self.total_copies
             self.total_copies = total_copies
 
     def __str__(self):
@@ -62,7 +62,7 @@ class Book:
         """
         return (f"Шифр: {self.code}, Название: {self.title}, Авторы: {', '.join(self.authors)}, "
                 f"Год: {self.year}, Издательство: {self.publisher}, Место издания: {self.place}, "
-                f"Всего экземпляров: {self.total_copies}, Доступно: {self.available_copies}")
+                f"Всего экземпляров: {self.total_copies}, Доступно: {self.copies_available}")
 
     def matches_query(self, query):
         """

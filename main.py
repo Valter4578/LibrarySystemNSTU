@@ -1,6 +1,7 @@
 from model.book import Book
 from model.book_catalog import BookCatalog
-
+from model.library_system import LibrarySystem
+from model.reader import Reader
 def main():
     #     # Создание книги
     # book1 = Book(
@@ -34,46 +35,99 @@ def main():
     #     print("Книга найдена по запросу.")
 
     # Создаём каталог книг
-    catalog = BookCatalog()
+    # catalog = BookCatalog()
 
-    # Добавляем книги
-    book1 = Book("QA123", "Программирование на Python", ["Иван Иванов"], 2023, "Москва", "Эксмо", 5)
-    book2 = Book("QA124", "Основы алгоритмов", ["Мария Петрова"], 2022, "Санкт-Петербург", "Питер", 3)
+    # # Добавляем книги
+    # book1 = Book("QA123", "Программирование на Python", ["Иван Иванов"], 2023, "Москва", "Эксмо", 5)
+    # book2 = Book("QA124", "Основы алгоритмов", ["Мария Петрова"], 2022, "Санкт-Петербург", "Питер", 3)
 
-    catalog.add_book(book1)
-    catalog.add_book(book2)
+    # catalog.add_book(book1)
+    # catalog.add_book(book2)
 
-    # Список всех книг
-    print("Список книг в каталоге:")
-    for book in catalog.list_books():
-        print(book)
+    # # Список всех книг
+    # print("Список книг в каталоге:")
+    # for book in catalog.list_books():
+    #     print(book)
 
-    # Поиск книги по шифру
-    print("\nПоиск книги по шифру QA123:")
-    found_book = catalog.search_by_code("QA123")
-    if found_book:
-        print(found_book)
-    else:
-        print("Книга не найдена.")
+    # # Поиск книги по шифру
+    # print("\nПоиск книги по шифру QA123:")
+    # found_book = catalog.search_by_code("QA123")
+    # if found_book:
+    #     print(found_book)
+    # else:
+    #     print("Книга не найдена.")
 
-    # Поиск книги по названию
-    print("\nПоиск книги по названию 'алгоритм':")
-    found_books = catalog.search_by_title("алгоритм")
-    for book in found_books:
-        print(book)
+    # # Поиск книги по названию
+    # print("\nПоиск книги по названию 'алгоритм':")
+    # found_books = catalog.search_by_title("алгоритм")
+    # for book in found_books:
+    #     print(book)
 
-    # Редактирование книги
-    print("\nРедактирование книги QA123:")
-    catalog.edit_book("QA123", title="Python для профессионалов", total_copies=10)
+    # # Редактирование книги
+    # print("\nРедактирование книги QA123:")
+    # catalog.edit_book("QA123", title="Python для профессионалов", total_copies=10)
 
-    # Удаление книги
-    print("\nУдаление книги QA124:")
-    catalog.remove_book("QA124")
+    # # Удаление книги
+    # print("\nУдаление книги QA124:")
+    # catalog.remove_book("QA124")
 
-    # Список всех книг после изменений
-    print("\nСписок книг после изменений:")
-    for book in catalog.list_books():
-        print(book)
+    # # Список всех книг после изменений
+    # print("\nСписок книг после изменений:")
+    # for book in catalog.list_books():
+    #     print(book)
+
+    #     library_system = LibrarySystem()
+
+    # # Создаём читателей
+    # reader1 = Reader("Иванов", "Иван", "Иванович", "ST12345", "2024-01-15", "2024-12-01", "студент")
+    # reader2 = Reader("Петрова", "Мария", "Александровна", "PR67890", "2023-03-20", "2024-11-10", "ППС")
+
+    # # Регистрируем читателей
+    # library_system.register_reader(reader1)
+    # library_system.register_reader(reader2)
+
+    # # Выводим список читателей
+    # library_system.list_readers()
+
+    # # Обновляем информацию о читателе
+    # library_system.update_reader_info("ST12345", first_name="Алексей", category="аспирант")
+
+    # # Пытаемся удалить читателя с невозвращёнными книгами
+    # library_system.issue_book("ST12345", "L001", 7)
+    # library_system.delete_reader("ST12345")
+
+    # # Возвращаем книгу и удаляем читателя
+    # library_system.return_book("ST12345", "L001")
+    # library_system.delete_reader("ST12345")
+
+    # # Выводим обновленный список читателей
+    # library_system.list_readers()
+    library_system = LibrarySystem()
+
+    # Создаём книги
+    book1 = Book("L001", "Война и мир", ["Л. Н. Толстой"], 1869, "Москва", "Русская классика", 5)
+    library_system.catalog["L001"] = book1
+
+    # Создаём читателя
+    reader1 = Reader("Иванов", "Иван", "Иванович", "ST12345", "2024-01-15", "2024-12-01", "студент")
+    library_system.register_reader(reader1)
+
+    # Выдаём книгу
+    library_system.issue_book("ST12345", "L001", 3, True)
+
+    # Возвращаем книгу
+    library_system.return_book("ST12345", "L001")
+
+    # Проверяем штрафы
+    library_system.list_fines("ST12345")
+
+    # Оплата штрафов
+    library_system.pay_fine("ST12345", 40)
+
+    # Проверяем штрафы после оплаты
+    library_system.list_fines("ST12345")
+
+
 
 if __name__ == "__main__":
     main()
