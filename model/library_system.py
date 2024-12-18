@@ -20,6 +20,42 @@ class LibrarySystem:
             self.catalog[book.code] = book
             print(f"Книга '{book.title}' добавлена в каталог.")
 
+    def return_book(self, ticket_number, book_code):
+        """
+        Возврат книги в библиотеку.
+        :param ticket_number: Номер читательского билета.
+        :param book_code: Шифр книги.
+        """
+        # Проверяем, зарегистрирован ли читатель
+        if ticket_number not in self.readers:
+            print(f"Читатель с номером билета {ticket_number} не зарегистрирован.")
+            return
+
+        # Проверяем, есть ли запись о выдаче этой книги
+        for record in self.issued_books:
+            if (record["reader"].ticket_number == ticket_number and
+                    record["book"].code == book_code and
+                    not record["returned"]):
+                
+                # Обновляем статус книги
+                record["returned"] = True
+                record["book"].copies_available += 1
+
+                # Проверяем, есть ли просрочка
+                if record["due_date"] < datetime.now():
+                    overdue_days = (datetime.now() - record["due_date"]).days
+                    penalty = overdue_days * 5  # Штраф, например, 5 рублей за день
+                    record["reader"].penalties += penalty
+                    print(f"Книга '{record['book'].title}' возвращена с просрочкой на {overdue_days} дней. "
+                          f"Начислен штраф: {penalty} рублей.")
+                else:
+                    print(f"Книга '{record['book'].title}' успешно возвращена.")
+
+                return
+
+        print(f"Книга с кодом {book_code} не числится за читателем {ticket_number} или уже была возвращена.")
+
+
     def issue_book(self, ticket_number, book_code, days, simulate_overdue = False):
         """
         Выдача книги читателю 

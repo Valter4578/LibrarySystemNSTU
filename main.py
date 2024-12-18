@@ -164,6 +164,7 @@ def main():
     library_system.issue_book(3, "QA123", days=5)  # Ошибка: PO_FPK может пользоваться только читальными залами
     library_system.issue_book(2, "QA123", days=100)  # Успешно: PPS может взять на 90 дней
 
+    library_system.return_book(1, "L001")
 
 
 if __name__ == "__main__":
