@@ -6,6 +6,7 @@ class LibrarySystem:
         self.readers = {}  # Словарь с читателями (ключ - номер читательского билета, значение - объект Reader)
         self.issued_books = []  # Список выданных книг (хранит записи о выдаче)
         self.fines = {}  # Словарь со штрафами (ключ - номер читательского билета, значение - список штрафов)
+        self.interlibrary_loans = []  # Межбиблиотечные заказы
 
 
     # Логика выдачи книг пользователям 
@@ -286,3 +287,92 @@ class LibrarySystem:
             print(f"Оплата превышает сумму штрафов. Остаток {remaining_amount} условных единиц возвращён читателю.")
         else:
             print(f"Все доступные штрафы оплачены.")
+
+
+    # МБА 
+    def request_interlibrary_loan(self, ticket_number, book_title):
+        """
+        Создание запроса на межбиблиотечный абонемент (МБА).
+        :param ticket_number: Номер читательского билета.
+        :param book_title: Название книги для заказа.
+        """
+        # Проверяем наличие читателя
+        if ticket_number not in self.readers:
+            print(f"Читатель с номером билета {ticket_number} не зарегистрирован.")
+            return
+
+        # Проверяем, есть ли книга в текущем каталоге и доступна ли она
+        for book in self.catalog.values():
+            if book.title.lower() == book_title.lower() and book.copies_available > 0:
+                print(f"Книга '{book_title}' доступна в текущей библиотеке. "
+                      f"Вы можете взять её на обычных условиях.")
+                return
+
+        # Если книги нет или недостаточно, оформляем межбиблиотечный заказ
+        loan = {
+            "reader": self.readers[ticket_number],
+            "book_title": book_title,
+            "status": "В обработке",
+            "due_date": None,
+            "returned": False
+        }
+        self.interlibrary_loans.append(loan)
+        print(f"Запрос на межбиблиотечный абонемент для книги '{book_title}' создан. "
+              f"Статус: В обработке.")
+
+    def process_interlibrary_loan(self, book_title):
+        """
+        Обработка межбиблиотечного заказа.
+        :param book_title: Название книги.
+        """
+        for loan in self.interlibrary_loans:
+            if loan["book_title"].lower() == book_title.lower() and loan["status"] == "В обработке":
+                loan["status"] = "Доставлено"
+                loan["due_date"] = datetime.now() + timedelta(days=30)  # Например, срок 30 дней
+                print(f"Книга '{book_title}' доставлена по межбиблиотечному абонементу. "
+                      f"Срок возврата: {loan['due_date'].strftime('%Y-%m-%d')}.")
+                return
+
+        print(f"Нет активных запросов на книгу '{book_title}' для обработки.")
+
+    def return_interlibrary_loan(self, ticket_number, book_title):
+        """
+        Возврат книги, полученной по межбиблиотечному абонементу.
+        :param ticket_number: Номер читательского билета.
+        :param book_title: Название книги.
+        """
+        for loan in self.interlibrary_loans:
+            if (loan["reader"].ticket_number == ticket_number and
+                    loan["book_title"].lower() == book_title.lower() and
+                    not loan["returned"]):
+                loan["returned"] = True
+
+                # Проверяем просрочку
+                if loan["due_date"] < datetime.now():
+                    overdue_days = (datetime.now() - loan["due_date"]).days
+                    penalty = overdue_days * 10  # Штраф, например, 10 рублей за день
+                    loan["reader"].penalties += penalty
+                    print(f"Книга '{book_title}' возвращена с просрочкой на {overdue_days} дней. "
+                          f"Начислен штраф: {penalty} рублей.")
+                else:
+                    print(f"Книга '{book_title}' возвращена вовремя. Спасибо!")
+
+                loan["status"] = "Возвращено"
+                return
+
+        print(f"Нет активных запросов на книгу '{book_title}' для возврата.")
+
+    def view_interlibrary_loans(self):
+        """
+        Вывод информации о всех межбиблиотечных абонементах.
+        """
+        if not self.interlibrary_loans:
+            print("Нет активных запросов на межбиблиотечный абонемент.")
+            return
+
+        for loan in self.interlibrary_loans:
+            status = loan["status"]
+            due_date = loan["due_date"].strftime('%Y-%m-%d') if loan["due_date"] else "Не указана"
+            returned = "Да" if loan["returned"] else "Нет"
+            print(f"Книга: {loan['book_title']}, Статус: {status}, "
+                  f"Срок возврата: {due_date}, Возвращена: {returned}")

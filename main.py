@@ -166,6 +166,18 @@ def main():
 
     library_system.return_book(1, "L001")
 
+    library_system.request_interlibrary_loan(1, "Мастер и Маргарита")
+    # Обработка доставки
+    library_system.process_interlibrary_loan("Мастер и Маргарита")
+    # Просмотр всех межбиблиотечных абонементов
+    library_system.view_interlibrary_loans()
+
+    # # Возврат книги
+    library_system.return_interlibrary_loan(1, "Мастер и Маргарита")
+
+    # # Проверка статуса после возврата
+    library_system.view_interlibrary_loans()
+
 
 if __name__ == "__main__":
     main()
