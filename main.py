@@ -1,7 +1,11 @@
 from model.book import Book
 from model.book_catalog import BookCatalog
 from model.library_system import LibrarySystem
-from model.reader import Reader
+from model.reader import Reader 
+from model.reader import Student
+from model.reader import Staff
+from model.reader import PO_FPK
+from model.reader import PPS
 def main():
     #     # Создание книги
     # book1 = Book(
@@ -104,28 +108,61 @@ def main():
     # library_system.list_readers()
     library_system = LibrarySystem()
 
-    # Создаём книги
-    book1 = Book("L001", "Война и мир", ["Л. Н. Толстой"], 1869, "Москва", "Русская классика", 5)
+    # # Создаём книги
+    book1 = Book("L001", "Война и мир", ["Л. Н. Толстой"], 1869, "Москва", "Русская классика", 6)
     library_system.catalog["L001"] = book1
 
-    # Создаём читателя
-    reader1 = Reader("Иванов", "Иван", "Иванович", "ST12345", "2024-01-15", "2024-12-01", "студент")
-    library_system.register_reader(reader1)
+    book2 = Book("QA123", "Программирование на Python", ["Иван Иванов"], 2023, "Москва", "Эксмо", 5)
+    library_system.catalog["QA123"] = book2
 
-    # Выдаём книгу
-    library_system.issue_book("ST12345", "L001", 3, True)
+    # # Создаём читателя
+    # reader1 = Reader("Иванов", "Иван", "Иванович", "ST12345", "2024-01-15", "2024-12-01", "студент")
+    # library_system.register_reader(reader1)
 
-    # Возвращаем книгу
-    library_system.return_book("ST12345", "L001")
+    # # Выдаём книгу
+    # library_system.issue_book("ST12345", "L001", 3, True)
 
-    # Проверяем штрафы
-    library_system.list_fines("ST12345")
+    # # Возвращаем книгу
+    # library_system.return_book("ST12345", "L001")
 
-    # Оплата штрафов
-    library_system.pay_fine("ST12345", 40)
+    # # Проверяем штрафы
+    # library_system.list_fines("ST12345")
 
-    # Проверяем штрафы после оплаты
-    library_system.list_fines("ST12345")
+    # # Оплата штрафов
+    # library_system.pay_fine("ST12345", 40)
+
+    # # Проверяем штрафы после оплаты
+    # library_system.list_fines("ST12345")
+
+
+    # Регистрация студентов
+    student = Student("Иванов", "Иван", "Иванович", 1, "2024-01-01", "2024-12-31", "Информатика", "101")
+    library_system.register_reader(student)
+
+    # Регистрация ППС
+    pps = PPS("Петрова", "Анна", "Сергеевна", 2, "2024-01-10", "2024-12-31", 
+            "Математика", "Профессор", "Кандидат наук", "Доцент")
+    library_system.register_reader(pps)
+
+    # Регистрация слушателя ПО и ФПК
+    po_fpk = PO_FPK("Сидоров", "Олег", "Николаевич", 3, "2024-01-15", "2024-12-31", 
+                    "Физика", "999")
+    library_system.register_reader(po_fpk)
+
+    # Список зарегистрированных читателей
+    print("\nСписок читателей:")
+    library_system.list_readers()
+
+    # Попытка взять книги
+    library_system.issue_book(1, "L001", 5)  # Успешно для студента
+    library_system.issue_book(1, "L001", 5)  # Успешно для студента
+    library_system.issue_book(1, "L001", 5)  # Успешно для студента
+    library_system.issue_book(1, "L001", 5)  # Успешно для студента
+    library_system.issue_book(1, "L001", 5)  # Успешно для студента
+    library_system.issue_book(1, "L001", 5) 
+
+    library_system.issue_book(3, "QA123", days=5)  # Ошибка: PO_FPK может пользоваться только читальными залами
+    library_system.issue_book(2, "QA123", days=100)  # Успешно: PPS может взять на 90 дней
 
 
 

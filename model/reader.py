@@ -49,3 +49,58 @@ class Reader:
                      f"Категория: {self.category}")
         extra_info = ", ".join([f"{key}: {value}" for key, value in self.extra_info.items()])
         return f"{base_info}, {extra_info if extra_info else 'Нет дополнительных данных'}"
+    
+
+# Подкласс для студентов
+class Student(Reader):
+    max_books = 4  # Максимальное количество книг
+    max_days = 7   # Максимальное количество дней на книгу
+    def __init__(self, last_name, first_name, middle_name, ticket_number, 
+                 registration_date, reregistration_date, faculty, group):
+        super().__init__(last_name, first_name, middle_name, ticket_number, 
+                         registration_date, reregistration_date, "Student", 
+                         faculty=faculty, group=group)
+
+    def __str__(self):
+        return super().__str__()
+
+# Подкласс для ППС (Профессорско-преподавательский состав)
+class PPS(Reader):
+    max_books = 10   # Максимальное количество книг
+    max_days = 90   # Максимальное количество дней на книгу
+    def __init__(self, last_name, first_name, middle_name, ticket_number, 
+                 registration_date, reregistration_date, department, position, degree, rank):
+        super().__init__(last_name, first_name, middle_name, ticket_number, 
+                         registration_date, reregistration_date, "PPS", 
+                         department=department, position=position, degree=degree, rank=rank)
+
+    def __str__(self):
+        return super().__str__()
+
+# Подкласс для сотрудников
+class Staff(Reader):
+    max_books = 3  # Максимальное количество книг
+    max_days = 14  # Максимальное количество дней на книгу
+
+    def __init__(self, last_name, first_name, middle_name, ticket_number, 
+                 registration_date, reregistration_date, division, position):
+        super().__init__(last_name, first_name, middle_name, ticket_number, 
+                         registration_date, reregistration_date, "Staff", 
+                         division=division, position=position)
+
+    def __str__(self):
+        return super().__str__()
+
+# Подкласс для слушателей ПО и ФПК
+class PO_FPK(Student):
+    max_books = 0  # Максимальное количество книг
+    max_days = 0  # Максимальное количество дней на книгу
+
+    def __init__(self, last_name, first_name, middle_name, ticket_number, 
+                 registration_date, reregistration_date, faculty, group):
+        super().__init__(last_name, first_name, middle_name, ticket_number, 
+                         registration_date, reregistration_date, faculty, group)
+        self.category = "PO_FPK"  # Переопределяем категорию
+
+    def __str__(self):
+        return f"{super().__str__()} (Может использовать только читальный зал)"

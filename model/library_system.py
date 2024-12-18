@@ -9,14 +9,6 @@ class LibrarySystem:
 
 
     # Логика выдачи книг пользователям 
-    def register_reader(self, reader):
-        if reader.ticket_number in self.readers:
-            print(f"Читатель с номером билета {reader.ticket_number} уже зарегистрирован.")
-        else:
-            self.readers[reader.ticket_number] = reader
-            self.fines[reader.ticket_number] = []  # Инициализируем историю штрафов
-            print(f"Читатель {reader.first_name} {reader.last_name} зарегистрирован.")
-
     def add_book_to_catalog(self, book):
         """
         Добавление книги в каталог.
@@ -43,9 +35,31 @@ class LibrarySystem:
             print(f"Книга с кодом {book_code} отсутствует в каталоге.")
             return
 
+        reader = self.readers[ticket_number]
         book = self.catalog[book_code]
+
         if book.copies_available <= 0:
             print(f"Книга '{book.title}' временно недоступна.")
+            return
+        
+        # Проверка ограничений для категории читателя
+        if hasattr(reader, "max_books") and hasattr(reader, "max_days"):
+            # Проверка на возможность выдачи книг (для PO_FPK)
+            if reader.max_books == 0:
+                print(f"Читатель {reader.first_name} {reader.last_name} может пользоваться только читальными залами.")
+                return
+
+            # Проверка на максимальное количество книг
+            borrowed_count = len([b for b in self.issued_books if b["reader"] == reader and not b["returned"]]) 
+            if borrowed_count >= reader.max_books:
+                print(f"Читатель {reader.first_name} {reader.last_name} не может взять больше {reader.max_books} книг.")
+                return
+
+            # Если количество дней не указано, берем ограничение из категории
+            if days is None or days > reader.max_days:
+                days = reader.max_days
+        else:
+            print("Ограничения для данной категории читателей не заданы. Операция отклонена.")
             return
 
         if simulate_overdue: 
