@@ -1,5 +1,5 @@
 class Book:
-    def __init__(self, code, title, authors, year, place, publisher, total_copies):
+    def __init__(self, code, title, authors, year, place, publisher, total_copies, price=100):
         """
         Инициализация книги.
         :param code: Библиотечный шифр книги (уникальный идентификатор).
@@ -18,6 +18,7 @@ class Book:
         self.publisher = publisher
         self.total_copies = total_copies
         self.copies_available = total_copies  # Изначально доступные экземпляры равны общему количеству.
+        self.price = price
 
     def borrow_book(self):
         """

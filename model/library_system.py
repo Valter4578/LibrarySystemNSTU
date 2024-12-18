@@ -7,9 +7,11 @@ class LibrarySystem:
         self.issued_books = []  # Список выданных книг (хранит записи о выдаче)
         self.fines = {}  # Словарь со штрафами (ключ - номер читательского билета, значение - список штрафов)
         self.interlibrary_loans = []  # Межбиблиотечные заказы
+        self.lost_or_damaged_books = []  # Учёт утерянных/испорченных книг
 
-
-    # Логика выдачи книг пользователям 
+    # ------------------------ 
+    # ---------- Логика выдачи книг пользователям  ----------
+    # ------------------------ 
     def add_book_to_catalog(self, book):
         """
         Добавление книги в каталог.
@@ -154,8 +156,9 @@ class LibrarySystem:
                   f"{record['reader'].last_name}, Дата выдачи: {record['issue_date'].strftime('%Y-%m-%d')}, "
                   f"Дата возврата: {record['return_date'].strftime('%Y-%m-%d')}, Статус: {status}")
             
-    
-    # Логика регистрации пользователей в библиотечной системе  
+    # ------------------------ 
+    # ---------- Логика регистрации пользователей в библиотечной системе  ----------
+    # ------------------------ 
     def register_reader(self, reader):
         """
         Регистрация нового читателя в системе.
@@ -219,7 +222,9 @@ class LibrarySystem:
         for ticket_number, reader in self.readers.items():
             print(f"- Билет №{ticket_number}: {reader.first_name} {reader.last_name}, категория: {reader.category}")
 
-    # Штрафы 
+    # ------------------------ 
+    # ---------- Штрафы ----------
+    # ------------------------ 
     def calculate_fine(self, overdue_days, fine_per_day=10):
         """
         Рассчитывает штраф на основе количества просроченных дней.
@@ -253,6 +258,7 @@ class LibrarySystem:
                 total_paid += fine_record["fine"]
 
         print(f"Общая сумма штрафов: {total_fine} условных единиц.")
+        self.readers[ticket_number].fines = total_fine - total_paid
         print(f"Осталось к оплате: {total_fine - total_paid} условных единиц.")
 
     def pay_fine(self, ticket_number, amount):
@@ -288,8 +294,9 @@ class LibrarySystem:
         else:
             print(f"Все доступные штрафы оплачены.")
 
-
-    # МБА 
+    # ------------------------ 
+    # ---------- МБА ----------
+    # ------------------------ 
     def request_interlibrary_loan(self, ticket_number, book_title):
         """
         Создание запроса на межбиблиотечный абонемент (МБА).
@@ -376,3 +383,83 @@ class LibrarySystem:
             returned = "Да" if loan["returned"] else "Нет"
             print(f"Книга: {loan['book_title']}, Статус: {status}, "
                   f"Срок возврата: {due_date}, Возвращена: {returned}")
+            
+    # ------------------------ 
+    # ------ Учет испорченных книг --------
+    # ------------------------ 
+
+    def report_lost_or_damaged_book(self, ticket_number, book_code, condition):
+        """
+        Отчёт об утерянной или испорченной книге.
+        :param ticket_number: Номер читательского билета.
+        :param book_code: Код книги.
+        :param condition: Состояние книги: 'утеряна' или 'испорчена'.
+        """
+        if ticket_number not in self.readers:
+            print(f"Читатель с номером билета {ticket_number} не зарегистрирован.")
+            return
+
+        if book_code not in self.catalog:
+            print(f"Книга с кодом {book_code} отсутствует в каталоге.")
+            return
+
+        # Проверяем, есть ли книга в списке выданных
+        book = self.catalog[book_code]
+        incidents = [
+            issued for issued in self.issued_books
+            if issued["reader"].ticket_number == ticket_number and issued["book"] == book and not issued["returned"]
+        ]
+
+        if not incidents:
+            print(f"Книга '{book.title}' не числится как выданная этому читателю.")
+            return
+
+        # Отмечаем книгу как утерянную или испорченную
+        incident = incidents[0]
+        incident["returned"] = True  # Закрываем выдачу
+
+        # Уменьшаем количество доступных копий
+        book.copies_available -= 1
+
+        # Начисляем штраф
+        if condition == "утеряна":
+            penalty = book.price * 10 
+            status = "Утеряна"
+        elif condition == "испорчена":
+            penalty = book.price * 0.5
+            status = "Испорчена"
+        else:
+            print("Ошибка: Неверное состояние книги. Укажите 'утеряна' или 'испорчена'.")
+            return
+
+        self.readers[ticket_number].fines += penalty
+        self.lost_or_damaged_books.append({
+            "reader": self.readers[ticket_number],
+            "book": book,
+            "status": status,
+            "penalty": penalty,
+            "date": datetime.now()
+        })
+
+        print(f"Книга '{book.title}' отмечена как {status}. Начислен штраф: {penalty} рублей.")
+
+        # Если больше нет копий, удаляем книгу из доступного каталога
+        if book.copies_available <= 0:
+            print(f"Книга '{book.title}' больше недоступна в каталоге.")
+            del self.catalog[book_code]
+
+    def view_lost_or_damaged_books(self):
+        """
+        Просмотр всех утерянных или испорченных книг.
+        """
+        if not self.lost_or_damaged_books:
+            print("Нет зарегистрированных случаев утери или порчи книг.")
+            return
+
+        print("Список утерянных и испорченных книг:")
+        for record in self.lost_or_damaged_books:
+            reader = record["reader"]
+            book = record["book"]
+            print(f"Читатель: {reader.first_name} {reader.last_name}, "
+                  f"Книга: {book.title}, Статус: {record['status']}, "
+                  f"Штраф: {record['penalty']} руб., Дата: {record['date'].strftime('%Y-%m-%d')}")

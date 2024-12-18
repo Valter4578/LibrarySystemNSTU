@@ -1,6 +1,6 @@
 class Reader:
     def __init__(self, last_name, first_name, middle_name, ticket_number, 
-                 registration_date, reregistration_date, category, **kwargs):
+                 registration_date, reregistration_date, category,fines=0, **kwargs):
         """
         Инициализация читателя библиотеки.
         :param last_name: Фамилия.
@@ -19,7 +19,7 @@ class Reader:
         self.registration_date = registration_date
         self.reregistration_date = reregistration_date
         self.category = category
-        
+        self.fines = fines 
         # Дополнительные атрибуты для каждой категории
         self.extra_info = kwargs
 

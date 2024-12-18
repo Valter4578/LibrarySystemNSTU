@@ -178,6 +178,12 @@ def main():
     # # Проверка статуса после возврата
     library_system.view_interlibrary_loans()
 
+    library_system.report_lost_or_damaged_book(1, "L001", "утеряна")
+
+    # Просматриваем список утерянных или испорченных книг
+    library_system.view_lost_or_damaged_books()
+
+    
 
 if __name__ == "__main__":
     main()
