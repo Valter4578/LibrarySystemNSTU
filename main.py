@@ -253,13 +253,14 @@ def add_book(library_system: LibrarySystem):
     title = input("Название книги: ")
     author = input("Автор книги: ")
     book_code = input("Шифр книги: ")
-    copies = int(input("Количество экземпляров: "))
+    subscription_copies = int(input("Количество экземпляров по абонементу: "))
+    reading_hall_copies = int(input("Количество экземпляров в читательском зале : "))
     # library_system.add_book(title, author, book_code, copies)
     year = int(input("Год выпуска"))
     place = input("Место издания")
     publisher = input("Название издания")
     price = int(input("Цена: "))
-    book = Book(book_code, title, [author], year, place, publisher, copies, price)
+    book = Book(book_code, title, [author], year, place, publisher, subscription_copies, reading_hall_copies, price)
     library_system.add_book_to_catalog(book)
 
 def remove_book(library_system):
@@ -270,6 +271,12 @@ def remove_book(library_system):
 def show_books(library_system):
     print("Просмотр доступных книг:")
     library_system.list_all_books()
+
+def default_setup(library_system: LibrarySystem): 
+    book = Book("L001", "Война и мир", ["Лев Толстой"], 2012, "Санкт-Петербург", "Эксмо", 5, 10, 250)
+    library_system.add_book_to_catalog(book)
+    student = Student("Пупкин", "Вася", "Пупкинович", "1", datetime.now(), datetime.now(), "АВТФ", "АВТФ-1")
+    library_system.register_reader(student)
 
 def main():
     library_system = LibrarySystem()
@@ -285,6 +292,9 @@ def main():
         print("7. Удалить книгу")
         print("8. Просмотр доступных книг")
         print("9. Выход")
+
+        #TODO:- Добавить МБА
+
         
         choice = input("Выберите действие (1-9): ")
 
@@ -307,6 +317,8 @@ def main():
         elif choice == "9":
             print("Выход из программы.")
             sys.exit(0)
+        elif choice == "10": 
+            default_setup(library_system)
         else:
             print("Неверный выбор, попробуйте еще раз.")
 

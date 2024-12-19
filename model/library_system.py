@@ -53,8 +53,15 @@ class LibrarySystem:
                 
                 # Обновляем статус книги
                 record["returned"] = True
-                record["book"].copies_available += 1
+                # record["book"].copies_available += 1
+                location = record["location"]
 
+                # Возвращаем экземпляр в соответствующий пункт
+                if location == "reading_hall":
+                    record["book"].reading_hall_copies += 1
+                elif location == "subscription":
+                    record["book"].subscription_copies += 1
+                    
                 # Проверяем, есть ли просрочка
                 if record["due_date"] < datetime.now():
                     overdue_days = (datetime.now() - record["due_date"]).days
@@ -63,17 +70,17 @@ class LibrarySystem:
                     fine = overdue_days * 10 
                     self.apply_penalty(ticket_number, fine, "Просрочка возврата книги", record["book"])
 
-                    print(f"Книга '{record['book'].title}' возвращена с просрочкой на {overdue_days} дней. "
+                    print(f"Книга '{record['book'].title}' возвращена в пункт {location}с просрочкой на {overdue_days} дней. "
                           f"Начислен штраф: {penalty} рублей.")
                 else:
-                    print(f"Книга '{record['book'].title}' успешно возвращена.")
+                    print(f"Книга '{record['book'].title}' успешно возвращена в пункт {location}.")
 
                 return
 
         print(f"Книга с кодом {book_code} не числится за читателем {ticket_number} или уже была возвращена.")
 
 
-    def issue_book(self, ticket_number, book_code, days, simulate_overdue = False):
+    def issue_book(self, ticket_number, book_code, days, simulate_overdue = False, location="subscription"):
         """
         Выдача книги читателю 
         :param book_code: Шифр книги 
@@ -91,9 +98,9 @@ class LibrarySystem:
         reader = self.readers[ticket_number]
         book = self.catalog[book_code]
 
-        if book.copies_available <= 0:
-            print(f"Книга '{book.title}' временно недоступна.")
-            return
+        # if book.copies_available <= 0:
+        #     print(f"Книга '{book.title}' временно недоступна.")
+        #     return
         
         # Проверка ограничений для категории читателя
         if hasattr(reader, "max_books") and hasattr(reader, "max_days"):
@@ -115,6 +122,21 @@ class LibrarySystem:
             print("Ограничения для данной категории читателей не заданы. Операция отклонена.")
             return
 
+        # Проверка наличия экземпляров в выбранном пункте выдачи
+        if location == "reading_hall":
+            if book.reading_hall_copies <= 0:
+                print(f"Книга '{book.title}' недоступна в читальном зале.")
+                return
+            book.reading_hall_copies -= 1
+        elif location == "subscription":
+            if book.subscription_copies <= 0:
+                print(f"Книга '{book.title}' недоступна на абонементе.")
+                return
+            book.subscription_copies -= 1
+        else:
+            print("Неверное место выдачи. Укажите 'reading_hall' или 'subscription'.")
+            return
+        
         if simulate_overdue: 
             due_date = datetime.now() - timedelta(days=days)
         else: 
@@ -124,10 +146,11 @@ class LibrarySystem:
             "reader": self.readers[ticket_number],
             "book": book,
             "due_date": due_date,
-            "returned": False
+            "returned": False, 
+            "location": location
         })
 
-        book.copies_available -= 1
+        # book.copies_available -= 1
         print(f"Книга '{book.title}' выдана читателю {self.readers[ticket_number].first_name} "
               f"до {due_date.strftime('%Y-%m-%d')}.")
         
@@ -366,7 +389,7 @@ class LibrarySystem:
 
         # Проверяем, есть ли книга в текущем каталоге и доступна ли она
         for book in self.catalog.values():
-            if book.title.lower() == book_title.lower() and book.copies_available > 0:
+            if book.title.lower() == book_title.lower() and (book.reading_hall_copies > 0 or book.subscription_copies > 0):
                 print(f"Книга '{book_title}' доступна в текущей библиотеке. "
                       f"Вы можете взять её на обычных условиях.")
                 return
@@ -476,7 +499,18 @@ class LibrarySystem:
         incident["returned"] = True  # Закрываем выдачу
 
         # Уменьшаем количество доступных копий
-        book.copies_available -= 1
+        # book.copies_available -= 1
+        location = incident["location"]
+        if location == "reading_hall":
+            if book.reading_hall_copies <= 0:
+                print(f"Книга '{book.title}' недоступна в читальном зале.")
+                return
+            book.reading_hall_copies -= 1
+        elif location == "subscription":
+            if book.subscription_copies <= 0:
+                print(f"Книга '{book.title}' недоступна на абонементе.")
+                return
+            book.subscription_copies -= 1
 
         # Начисляем штраф
         if condition == "утеряна":
@@ -493,10 +527,10 @@ class LibrarySystem:
 
         print(f"Книга '{book.title}' отмечена как {status}. Начислен штраф: {penalty_amount} рублей.")
 
-        # Если больше нет копий, удаляем книгу из доступного каталога
-        if book.copies_available <= 0:
-            print(f"Книга '{book.title}' больше недоступна в каталоге.")
-            del self.catalog[book_code]
+        # # Если больше нет копий, удаляем книгу из доступного каталога
+        # if book.subscript <= 0:
+        #     print(f"Книга '{book.title}' больше недоступна в каталоге.")
+        #     del self.catalog[book_code]
 
     def view_lost_or_damaged_books(self):
         """

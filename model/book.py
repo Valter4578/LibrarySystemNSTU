@@ -1,5 +1,5 @@
 class Book:
-    def __init__(self, code, title, authors, year, place, publisher, total_copies, price=100):
+    def __init__(self, code, title, authors, year, place, publisher, reading_hall_copies, subscription_copies, price=100):
         """
         Инициализация книги.
         :param code: Библиотечный шифр книги (уникальный идентификатор).
@@ -16,9 +16,11 @@ class Book:
         self.year = year
         self.place = place
         self.publisher = publisher
-        self.total_copies = total_copies
-        self.copies_available = total_copies  # Изначально доступные экземпляры равны общему количеству.
+        # self.total_copies = total_copies
+        # self.copies_available = total_copies  # Изначально доступные экземпляры равны общему количеству.
         self.price = price
+        self.reading_hall_copies = reading_hall_copies
+        self.subscription_copies = subscription_copies
 
     def borrow_book(self):
         """
@@ -63,7 +65,7 @@ class Book:
         """
         return (f"Шифр: {self.code}, Название: {self.title}, Авторы: {', '.join(self.authors)}, "
                 f"Год: {self.year}, Издательство: {self.publisher}, Место издания: {self.place}, "
-                f"Всего экземпляров: {self.total_copies}, Доступно: {self.copies_available}")
+                f"Читальный зал: {self.reading_hall_copies} | Абонемент: {self.subscription_copies}")
 
     def matches_query(self, query):
         """
