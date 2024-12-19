@@ -69,10 +69,10 @@ class PPS(Reader):
     max_books = 10   # Максимальное количество книг
     max_days = 90   # Максимальное количество дней на книгу
     def __init__(self, last_name, first_name, middle_name, ticket_number, 
-                 registration_date, reregistration_date, department, position, degree, rank):
+                 registration_date, reregistration_date, department, position):
         super().__init__(last_name, first_name, middle_name, ticket_number, 
                          registration_date, reregistration_date, "PPS", 
-                         department=department, position=position, degree=degree, rank=rank)
+                         department=department, position=position)
 
     def __str__(self):
         return super().__str__()

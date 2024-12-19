@@ -23,6 +23,17 @@ class LibrarySystem:
             self.catalog[book.code] = book
             print(f"Книга '{book.title}' добавлена в каталог.")
 
+    def remove_book_from_catalog(self, book_code): 
+        if book_code in self.catalog:
+            self.catalog.pop(book_code)
+        else: 
+            print(f"Книга с шифром {book_code} не найдена")
+
+    def list_all_books(self): 
+        print("Все доступные книги")
+        for code, book in self.catalog.items():
+           print(f"{code}: {book}")
+
     def return_book(self, ticket_number, book_code):
         """
         Возврат книги в библиотеку.
@@ -46,11 +57,11 @@ class LibrarySystem:
 
                 # Проверяем, есть ли просрочка
                 if record["due_date"] < datetime.now():
-                    overdue_days = (datetime.now() - record["daue_date"]).days
+                    overdue_days = (datetime.now() - record["due_date"]).days
                     penalty = overdue_days * 5  # Штраф, например, 5 рублей за день
                     record["reader"].penalties += penalty
                     fine = overdue_days * 10 
-                    self.apply_penalty(ticket_number, fine, "Просрочка возврата книги", book=record["book"])
+                    self.apply_penalty(ticket_number, fine, "Просрочка возврата книги", record["book"])
 
                     print(f"Книга '{record['book'].title}' возвращена с просрочкой на {overdue_days} дней. "
                           f"Начислен штраф: {penalty} рублей.")
@@ -328,6 +339,7 @@ class LibrarySystem:
             "date": datetime.now(),
             "book": book
         }
+
     
         # Добавляем штраф в общий список штрафов
         self.penalties.append(penalty)
