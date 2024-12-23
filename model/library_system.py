@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-
+import logger
 class LibrarySystem:
     def __init__(self):
         self.catalog = {}  # Словарь с каталогом книг (ключ - библиотечный шифр, значение - объект Book)
@@ -76,7 +76,7 @@ class LibrarySystem:
                     print(f"Книга '{record['book'].title}' успешно возвращена в пункт {location}.")
 
                 return
-
+        logger.log_action("error", f"Не удалось найти запись о выдаче книги с кодом {book_code} читателю {ticket_number}.") 
         print(f"Книга с кодом {book_code} не числится за читателем {ticket_number} или уже была возвращена.")
 
 
@@ -151,6 +151,8 @@ class LibrarySystem:
         })
 
         # book.copies_available -= 1
+        logger.log_action("info", f"Книга '{book.title}' выдана читателю {ticket_number} из {location} до {due_date}.")
+
         print(f"Книга '{book.title}' выдана читателю {self.readers[ticket_number].first_name} "
               f"до {due_date.strftime('%Y-%m-%d')}.")
         
@@ -342,6 +344,8 @@ class LibrarySystem:
         else:
             # Уменьшаем сумму штрафа, если оплаты недостаточно
             reader.penalties -= amount
+            logger.log_action("info", f"Читатель {ticket_number} оплатил штраф в размере {amount}. Осталось {reader.penalties}.")
+
             print(f"Оплачено {amount} рублей. Остаток штрафа для читателя {reader.first_name} {reader.last_name}: {reader.penalties} рублей.")
 
     def apply_penalty(self, ticket_number, amount, book, reason="Просрочка книги"):
@@ -369,7 +373,7 @@ class LibrarySystem:
     
         # Увеличиваем сумму штрафов у читателя
         self.readers[ticket_number].penalties += amount
-    
+        
         print(f"Начислен штраф {amount} рублей читателю {self.readers[ticket_number].first_name} "
           f"за {reason}.")
 

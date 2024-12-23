@@ -8,6 +8,7 @@ from model.reader import Staff
 from model.reader import PO_FPK
 from model.reader import PPS
 from datetime import datetime, timedelta
+import logger
 # def main():
 #     #     # Создание книги
 #     # book1 = Book(
@@ -294,10 +295,9 @@ def main():
         print("9. Выход")
 
         #TODO:- Добавить МБА
-
         
         choice = input("Выберите действие (1-9): ")
-
+        
         if choice == "1":
             register_reader(library_system)
         elif choice == "2":
@@ -321,9 +321,6 @@ def main():
             default_setup(library_system)
         else:
             print("Неверный выбор, попробуйте еще раз.")
-
-if __name__ == "__main__":
-    main()
 
 if __name__ == "__main__":
     main()
