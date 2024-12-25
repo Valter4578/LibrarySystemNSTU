@@ -1,13 +1,23 @@
 from datetime import datetime, timedelta
 import logger
+import json 
+
 class LibrarySystem:
-    def __init__(self):
+    def __init__(self, catalog_file="catalog.json", readers_file="readers.json", issued_books_file="issued_books.json"):
         self.catalog = {}  # Словарь с каталогом книг (ключ - библиотечный шифр, значение - объект Book)
         self.readers = {}  # Словарь с читателями (ключ - номер читательского билета, значение - объект Reader)
         self.issued_books = []  # Список выданных книг (хранит записи о выдаче)
         self.penalties = [] 
         self.interlibrary_loans = []  # Межбиблиотечные заказы
         self.lost_or_damaged_books = []  # Учёт утерянных/испорченных книг
+
+        # Пути к JSON-файлам
+        self.catalog_file = catalog_file
+        self.readers_file = readers_file
+        self.issued_books_file = issued_books_file
+        
+        # Попробуем загрузить данные из файлов
+        # self.load_from_file()
 
     # ------------------------ 
     # ---------- Логика выдачи книг пользователям  ----------
@@ -22,10 +32,12 @@ class LibrarySystem:
         else:
             self.catalog[book.code] = book
             print(f"Книга '{book.title}' добавлена в каталог.")
+            self.save_to_file()
 
     def remove_book_from_catalog(self, book_code): 
         if book_code in self.catalog:
             self.catalog.pop(book_code)
+            self.save_to_file()
         else: 
             print(f"Книга с шифром {book_code} не найдена")
 
@@ -69,10 +81,13 @@ class LibrarySystem:
                     record["reader"].penalties += penalty
                     fine = overdue_days * 10 
                     self.apply_penalty(ticket_number, fine, "Просрочка возврата книги", record["book"])
+                    self.save_to_file()
 
                     print(f"Книга '{record['book'].title}' возвращена в пункт {location}с просрочкой на {overdue_days} дней. "
                           f"Начислен штраф: {penalty} рублей.")
                 else:
+                    self.save_to_file()
+
                     print(f"Книга '{record['book'].title}' успешно возвращена в пункт {location}.")
 
                 return
@@ -152,6 +167,7 @@ class LibrarySystem:
 
         # book.copies_available -= 1
         logger.log_action("info", f"Книга '{book.title}' выдана читателю {ticket_number} из {location} до {due_date}.")
+        self.save_to_file()
 
         print(f"Книга '{book.title}' выдана читателю {self.readers[ticket_number].first_name} "
               f"до {due_date.strftime('%Y-%m-%d')}.")
@@ -180,7 +196,7 @@ class LibrarySystem:
         else:
             self.readers[reader.ticket_number] = reader
             # self.fines[reader.ticket_number] = []  # Инициализируем историю штрафов
-
+            self.save_to_file()
             print(f"Читатель {reader.first_name} {reader.last_name} зарегистрирован.")
 
     def update_reader_info(self, ticket_number, **kwargs):
@@ -233,6 +249,8 @@ class LibrarySystem:
 
         # Удаляем читателя из системы
         del self.readers[ticket_number]
+        self.save_to_file()
+
         print(f"Читатель {reader.first_name} {reader.last_name} успешно удалён из системы.")
 
     def list_readers(self):
@@ -552,4 +570,68 @@ class LibrarySystem:
             print(f"Читатель: {reader.first_name} {reader.last_name}, "
                   f"Книга: {book.title}, Статус: {record['status']}, "
                   f"Штраф: {record['penalty']} руб., Дата: {record['date'].strftime('%Y-%m-%d')}")
-            
+        
+    
+    # ------------------------ 
+    # ------ Сохранение в json --------
+    # ------------------------ 
+
+    def save_to_file(self):
+        """
+        Сохраняет данные библиотеки в JSON-файлы.
+        """
+        # Сохраняем каталог книг
+        with open(self.catalog_file, "w", encoding="utf-8") as f:
+            json.dump({k: v.to_dict() for k, v in self.catalog.items()}, f, ensure_ascii=False, indent=4)
+        
+        # Сохраняем список читателей
+        with open(self.readers_file, "w", encoding="utf-8") as f:
+            json.dump({k: v.to_dict() for k, v in self.readers.items()}, f, ensure_ascii=False, indent=4)
+        
+        # Сохраняем список выданных книг
+        with open(self.issued_books_file, "w", encoding="utf-8") as f:
+            json.dump([{
+                "reader": record["reader"].ticket_number,
+                "book": record["book"].book,
+                "due_date": record["due_date"].strftime("%Y-%m-%d %H:%M:%S"),
+                "returned": record["returned"],
+                "location": record["location"]
+            } for record in self.issued_books], f, ensure_ascii=False, indent=4)
+        
+        print("Данные успешно сохранены в файлы.")
+
+    # def load_from_file(self):
+        # """
+        # Загружает данные библиотеки из JSON-файлов.
+        # """
+        # try:
+        #     # Загружаем каталог книг
+        #     with open(self.catalog_file, "r", encoding="utf-8") as f:
+        #         catalog_data = json.load(f)
+        #         self.catalog = {k: Book.from_dict(v) for k, v in catalog_data.items()}
+        # except FileNotFoundError:
+        #     print("Файл каталога не найден, создается новый.")
+        
+        # try:
+        #     # Загружаем список читателей
+        #     with open(self.readers_file, "r", encoding="utf-8") as f:
+        #         readers_data = json.load(f)
+        #         self.readers = {k: Reader.from_dict(v) for k, v in readers_data.items()}
+        # except FileNotFoundError:
+        #     print("Файл читателей не найден, создается новый.")
+        
+        # try:
+        #     # Загружаем список выданных книг
+        #     with open(self.issued_books_file, "r", encoding="utf-8") as f:
+        #         issued_books_data = json.load(f)
+        #         self.issued_books = [{
+        #             "reader": self.readers[record["reader"]],
+        #             "book": self.catalog[record["book"]],
+        #             "due_date": datetime.strptime(record["due_date"], "%Y-%m-%d %H:%M:%S"),
+        #             "returned": record["returned"],
+        #             "location": record["location"]
+        #         } for record in issued_books_data]
+        # except FileNotFoundError:
+        #     print("Файл выданных книг не найден, создается новый.")
+
+        # print("Данные успешно загружены из файлов.")

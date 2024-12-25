@@ -74,3 +74,32 @@ class Book:
         :return: True, если запрос совпадает, иначе False.
         """
         return query.lower() in self.title.lower() or query.lower() in self.code.lower()
+    
+    def to_dict(self):
+        """
+        Преобразует объект книги в словарь.
+        """
+        return {
+            "book_code": self.code,
+            "title": self.title,
+            "authors": self.authors,
+            "year": self.year,
+            # "copies": self.copies,
+            "reading_hall_copies": self.reading_hall_copies,
+            "subscription_copies": self.subscription_copies
+        }
+
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Создает объект книги из словаря.
+        """
+        return cls(
+            book_code=data["code"],
+            title=data["title"],
+            authors=data["authors"],
+            year=data["year"],
+            # copies=data["copies"],
+            reading_hall_copies=data["reading_hall_copies"],
+            subscription_copies=data["subscription_copies"]
+        )

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 class Reader:
     def __init__(self, last_name, first_name, middle_name, ticket_number, 
                  registration_date, reregistration_date, category,penalties=0, **kwargs):
@@ -50,7 +51,39 @@ class Reader:
         extra_info = ", ".join([f"{key}: {value}" for key, value in self.extra_info.items()])
         return f"{base_info}, {extra_info if extra_info else 'Нет дополнительных данных'}"
     
+    def to_dict(self):
+        """
+        Преобразует объект читателя в словарь.
+        """
+        return {
+            "last_name": self.last_name,
+            "first_name": self.first_name,
+            "middle_name": self.middle_name,
+            "ticket_number": self.ticket_number,
+            "registration_date": self.registration_date.strftime("%Y-%m-%d"),
+            "reregistration_date": self.reregistration_date.strftime("%Y-%m-%d"),
+            "category": self.category,
+            "extra_info": self.extra_info,
+            "penalties": self.penalties
+        }
 
+    @classmethod
+    def from_dict(cls, data):
+        """
+        Создает объект читателя из словаря.
+        """
+        return cls(
+            last_name=data["last_name"],
+            first_name=data["first_name"],
+            middle_name=data["middle_name"],
+            ticket_number=data["ticket_number"],
+            registration_date=datetime.strptime(data["registration_date"], "%Y-%m-%d"),
+            reregistration_date=datetime.strptime(data["reregistration_date"], "%Y-%m-%d"),
+            category=data["category"],
+            total_fines=data["total_fines"],
+            **data["extra_info"]
+        )
+    
 # Подкласс для студентов
 class Student(Reader):
     max_books = 4  # Максимальное количество книг
